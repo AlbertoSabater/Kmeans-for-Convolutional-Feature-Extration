@@ -25,7 +25,7 @@ opt = {
 local date = os.date("%m%d")
 
 
-local game = "demon-attack"
+local game = "demon_attack"
 local network = "convnet_paper1_bigger"
 
 local msg, err = pcall(require, network)
@@ -180,7 +180,7 @@ for i=1,math.min(numLayers,#args.n_units) do
 
 end
 
-
+net = net:float()
 print (net)
 torch.save(path, { network = net })
 print ("Network saved:", path)
