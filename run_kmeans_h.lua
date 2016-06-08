@@ -25,7 +25,7 @@ opt = {
 local date = os.date("%m%d")
 
 
-local game = "ms_pacman"
+local game = "demon-attack"
 local network = "convnet_paper1_bigger"
 
 local msg, err = pcall(require, network)
@@ -37,17 +37,21 @@ args.ncols = 1
 args = network(args)
 
 
-local data = torch.load("../stored_frames/frames_" .. game .. "_0419.t7",'binary')
+local data = torch.load("../stored_frames/" .. game .. "_RGBvideo.t7",'binary')
 
+local fr = data.frames:double()
+print (fr:size())
 
-local fr = data.frames
 -- set parameters
 local data_dim = {fr:size(2), fr:size(3), fr:size(4)}
 local trsize = fr:size(1)
 local numPatches = 50000
-local featureRelation = 2
+local featureRelation = 1
 
-local numLayers = 5
+local numLayers = 2
+
+path = "../stored_kernels/kmeans/" .. game .. "_kmeans_" .. numLayers .. "_" .. featureRelation .. "_" .. date .. ".t7"
+print (path)
 
 
 local net = nn.Sequential()
@@ -61,6 +65,7 @@ for i=1,math.min(numLayers,#args.n_units) do
 
 
     nextData = {}
+    net:double()
     for i=1,fr:size(1) do
         table.insert(nextData, net:forward(fr[i]))
     end
@@ -119,7 +124,7 @@ for i=1,math.min(numLayers,#args.n_units) do
     while centroidsFound == 0 do    -- Iterate until get all centroids
       print("==> find clusters", ncentroids)
       kernels, counts = unsup.kmeans_modified(patches, ncentroids, nil, 0.1, 1, 1000, nil, true)
-      torch.save("../stored_kernels/kernels_" .. game .. "_" .. date .. "v0.t7", { kernels = kernels, counts = counts, patches = patches })
+      --torch.save("../stored_kernels/kernels_" .. game .. "_" .. date .. "v0.t7", { kernels = kernels, counts = counts, patches = patches })
       print(#counts)
       --print (kernels:size())
 
@@ -141,13 +146,13 @@ for i=1,math.min(numLayers,#args.n_units) do
 
       --print (kernels:size())
       --image.display(kernels[14]:resize(4,7,7))
-      torch.save("../stored_kernels/kernels_" .. game .. "_" .. date .. ".t7", { kernels = kernels_v2, counts = counts_v2 })
+      --torch.save("../stored_kernels/kernels_" .. game .. "_" .. date .. ".t7", { kernels = kernels_v2, counts = counts_v2 })
 
-len = #counts_v2
+      len = #counts_v2
       if len[1] == currentCentroids then   -- kernels found
         centroidsFound = 1
       elseif len[1] < currentCentroids then   -- more kernels
-centroidsFound = 1
+        centroidsFound = 1
         ncentroids = ncentroids + 1
       else
         centroidsFound = 1
@@ -169,21 +174,13 @@ centroidsFound = 1
 
     -- set weights
 
-    print (net)
+
     --net:get(i*2-1).weight = kernels:resize(net:get(i*2-1).weight:size())
     net:get(i*2-1).weight = kernels_v2
 
-    torch.save("../stored_kernels/kernels_net_" .. game .. "_" .. date .. ".t7", { network = net })
-
 end
 
 
-local win = nil
-for i=1,32 do
-
-    --print(net:forward(fr[100]):size())
-    --win = image.display({image=net:forward(fr[100])[i]})
-
-end
-
-    --win = image.display({image=net:get(1):forward(fr[100])})
+print (net)
+torch.save(path, { network = net })
+print ("Network saved:", path)
