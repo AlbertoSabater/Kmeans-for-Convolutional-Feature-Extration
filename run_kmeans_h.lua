@@ -1,13 +1,7 @@
 #!/usr/bin/env th
---
--- An Analysis of Single-Layer Networks in Unsupervised Feature Learning
--- by Adam Coates et al. 2011
---
--- The original MatLab code can be found in http://www.cs.stanford.edu/~acoates/
--- Tranlated to Lua/Torch7
---
 
-package.path = '/home/asabater/Atari-DeepReinforcementLearning/dqn/?.lua;' .. package.path
+
+--package.path = '/home/user/Atari-DeepReinforcementLearning/dqn/?.lua;' .. package.path
 
 require("xlua")
 require("image")
